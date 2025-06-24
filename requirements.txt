@@ -7,5 +7,4 @@ redis==5.0.1
 python-telegram-bot==20.7
 django-filter==23.5
 Pillow==10.1.0
-drf-yasg==1.21.7
-sqlalchemy==2.0.41 
+drf-yasg==1.21.7 
