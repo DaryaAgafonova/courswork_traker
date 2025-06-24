@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  web:
+    build: ./coursof
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - ./coursof:/app
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./coursof/env.example
+    depends_on:
+      - redis
+
+  celery:
+    build: ./coursof
+    command: celery -A habit_tracker worker --loglevel=info
+    volumes:
+      - ./coursof:/app
+    env_file:
+      - ./coursof/env.example
+    depends_on:
+      - redis
+
+  celery-beat:
+    build: ./coursof
+    command: celery -A habit_tracker beat --loglevel=info
+    volumes:
+      - ./coursof:/app
+    env_file:
+      - ./coursof/env.example
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7.2-alpine
+    ports:
+      - "6379:6379" 
