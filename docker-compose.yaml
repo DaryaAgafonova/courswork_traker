@@ -1,23 +1,21 @@
+version: '3.8'
+
 services:
   web:
-    build: .
-    command: >
-      sh -c "python manage.py migrate &&
-             python manage.py runserver 0.0.0.0:8000"
-    volumes:
-      - .:/app
+    image: your-dockerhub-username/habit-tracker:latest
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - .env 
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: unless-stopped
 
   celery:
-    build: .
+    image: your-dockerhub-username/habit-tracker:latest
     command: celery -A habit_tracker worker --loglevel=info
     env_file:
       - .env
@@ -26,9 +24,10 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: unless-stopped
 
   celery-beat:
-    build: .
+    image: your-dockerhub-username/habit-tracker:latest
     command: celery -A habit_tracker beat --loglevel=info
     env_file:
       - .env
@@ -37,6 +36,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
+    restart: unless-stopped
 
   db:
     image: postgres:15-alpine
@@ -46,18 +46,27 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
       retries: 5
+    restart: unless-stopped
 
   redis:
     image: redis:7.2-alpine
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
     ports:
-      - "6380:6379"
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./staticfiles:/app/staticfiles
+    depends_on:
+      - web
+    restart: unless-stopped
 
 volumes:
   postgres_data: 
