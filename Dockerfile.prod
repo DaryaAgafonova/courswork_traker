@@ -1,0 +1,39 @@
+# Production Dockerfile
+FROM python:3.11-slim
+
+# Установка системных зависимостей
+RUN apt-get update && apt-get install -y \
+    gcc \
+    postgresql-client \
+    && rm -rf /var/lib/apt/lists/*
+
+# Создание пользователя для безопасности
+RUN useradd --create-home --shell /bin/bash app
+
+# Установка рабочей директории
+WORKDIR /app
+
+# Копирование requirements и установка зависимостей
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Копирование кода приложения
+COPY . .
+
+# Создание директории для статических файлов
+RUN mkdir -p /app/staticfiles
+
+# Сборка статических файлов
+RUN python manage.py collectstatic --noinput
+
+# Смена владельца файлов
+RUN chown -R app:app /app
+
+# Переключение на пользователя app
+USER app
+
+# Открытие порта
+EXPOSE 8000
+
+# Команда запуска с Gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "3", "habit_tracker.wsgi:application"] 

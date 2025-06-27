@@ -8,4 +8,5 @@ python-telegram-bot==20.7
 django-filter==23.5
 Pillow==10.1.0
 drf-yasg==1.21.7
-psycopg2-binary==2.9.9 
+psycopg2-binary==2.9.9
+gunicorn==21.2.0 
